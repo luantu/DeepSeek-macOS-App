@@ -22,10 +22,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var autoLaunchEnabled = false
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
         setupStatusBar()
         setupKeyboardShortcuts()
         setupShortcutChangeObserver()
+        toggleWindow()
     }
 
     // MARK: - 状态栏
@@ -167,24 +168,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if window == nil {
             let rect = NSRect(x: 0, y: 0, width: 800, height: 600)
             webVC = WebViewController()
+            // 创建窗口时使用defer: true，让系统有机会恢复窗口大小和位置
             window = NSWindow(contentRect: rect,
-                              styleMask: [.titled, .closable, .resizable],
+                              styleMask: [.titled, .closable, .miniaturizable, .resizable],
                               backing: .buffered,
-                              defer: false)
+                              defer: true)
             window?.contentViewController = webVC
-            window?.center()
             window?.title = "DeepSeek"
             window?.isReleasedWhenClosed = false
+            window?.delegate = self
+            
+            // 设置窗口框架自动保存名称，这是系统记住窗口大小和位置的关键
+            window?.setFrameAutosaveName("MainWindow")
         }
 
+        // 确保窗口总是显示出来，特别是在应用启动时
         if let win = window {
-            if win.isVisible {
-                win.orderOut(nil)
-            } else {
-                win.makeKeyAndOrderFront(nil)
-                NSApp.activate(ignoringOtherApps: true)
-                updateWindowTopState()
-            }
+            win.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            updateWindowTopState()
         }
     }
 
@@ -258,7 +260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                print("❌ 启动项设置失败: \(error)")
+                NSLog("❌ 启动项设置失败: %@", error.localizedDescription)
             }
         } else {
             let helperID = "\(Bundle.main.bundleIdentifier!).LaunchAtLoginHelper" as CFString
@@ -279,5 +281,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: - 退出
     @objc private func quitApp() {
         NSApp.terminate(nil)
+    }
+    
+    // 处理Dock图标点击事件
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // 如果没有可见窗口，则显示主窗口
+        if !flag {
+            toggleWindow()
+        }
+        return true
     }
 }
