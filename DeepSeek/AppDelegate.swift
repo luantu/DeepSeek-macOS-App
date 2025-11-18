@@ -82,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         prefItem.keyEquivalentModifierMask = [.command]
         quitItem.target = self
 
-        menu.addItem(openItem)
+        // menu.addItem(openItem)
         menu.addItem(refreshItem)
         menu.addItem(.separator())
         menu.addItem(topItem)

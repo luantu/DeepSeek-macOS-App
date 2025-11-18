@@ -107,6 +107,8 @@ class WebViewController: NSViewController, WKUIDelegate, WKNavigationDelegate {
     }
     
     func reloadWeb() {
+        // 重置CSS注入标志，确保刷新页面后重新注入CSS
+        cssInjected = false
         webView.reload()
     }
     
@@ -184,20 +186,17 @@ class WebViewController: NSViewController, WKUIDelegate, WKNavigationDelegate {
             return
         }
         
-        // 获取用户家目录，使用NSHomeDirectory()获取实际用户目录
-        // 这在大多数macOS环境中更可靠，并且能够正确处理权限
-        let homeDirectory = NSHomeDirectory()
+        // 从AppUserSettings中获取用户保存的CSS目录路径
+        let cssDirectory = AppUserSettings.shared.cssFileDirectory
         
-        // 创建应用数据文件夹路径
-        let appDataDirectory = homeDirectory + "/.DeepSeek"
         // 自定义CSS文件路径
-        let cssFilePath = appDataDirectory + "/custom.css"
+        let cssFilePath = cssDirectory + "/custom.css"
         
         // 检查并创建应用数据文件夹（如果不存在）
-        if !FileManager.default.fileExists(atPath: appDataDirectory) {
+        if !FileManager.default.fileExists(atPath: cssDirectory) {
             do {
                 // 创建目录时设置适当的权限
-                try FileManager.default.createDirectory(atPath: appDataDirectory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o755])
+                try FileManager.default.createDirectory(atPath: cssDirectory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o755])
                 self.showAlert(message: "已创建应用数据文件夹，请在以下路径创建custom.css文件: \(cssFilePath)")
                 return
             } catch {
