@@ -165,6 +165,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     // MARK: - 窗口控制
     @objc private func toggleWindow() {
+        // 检查窗口是否已存在且可见（非最小化）
+        if let win = window,
+           !win.isMiniaturized,  // 窗口未最小化
+           win.isVisible {      // 窗口可见
+            // 如果窗口已打开且非最小化，则将其最小化到Dock栏
+            win.miniaturize(nil)
+            return
+        }
+        
+        // 如果窗口不存在，则创建新窗口
         if window == nil {
             let rect = NSRect(x: 0, y: 0, width: 800, height: 600)
             webVC = WebViewController()
@@ -182,8 +192,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window?.setFrameAutosaveName("MainWindow")
         }
 
-        // 确保窗口总是显示出来，特别是在应用启动时
+        // 确保窗口显示出来
         if let win = window {
+            // 如果窗口是最小化状态，先取消最小化
+            if win.isMiniaturized {
+                win.deminiaturize(nil)
+            }
+            
             win.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             updateWindowTopState()
