@@ -157,8 +157,15 @@ class WebViewController: NSViewController, WKUIDelegate, WKNavigationDelegate {
                 return
             }
         }
+        
         // 允许其他导航操作
         decisionHandler(.allow)
+    }
+    
+    // 监听导航开始，重置CSS注入标志
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        // 重置CSS注入标志，确保任何形式的页面重新加载（包括右击菜单中的重新载入）后都能重新注入CSS
+        cssInjected = false
     }
     
     // 是否已经注入过CSS，避免无限循环
