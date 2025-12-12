@@ -169,9 +169,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let win = window,
            !win.isMiniaturized,  // 窗口未最小化
            win.isVisible {      // 窗口可见
-            // 如果窗口已打开且非最小化，则将其最小化到Dock栏
-            win.miniaturize(nil)
-            return
+            // 如果窗口已打开且非最小化，检查是否在最前台
+            if win.isKeyWindow {
+                // 如果是关键窗口，则将其最小化到Dock栏
+                win.miniaturize(nil)
+                return
+            } else {
+                // 如果不是关键窗口，则将其切换到前台
+                win.makeKeyAndOrderFront(nil)
+                NSApp.activate(ignoringOtherApps: true)
+                updateWindowTopState()
+                return
+            }
         }
         
         // 如果窗口不存在，则创建新窗口
